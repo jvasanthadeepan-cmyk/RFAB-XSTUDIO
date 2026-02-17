@@ -26,21 +26,11 @@ pool.on("connect", () => {
 // Test the connection
 pool.query("SELECT NOW()", (err, result) => {
   if (err) {
-    console.error("❌ Database connection failed:");
-    console.error(`   - Host: ${process.env.DB_HOST || "localhost"}`);
-    console.error(`   - Port: ${process.env.DB_PORT || 5432}`);
-    console.error(`   - User: ${process.env.DB_USER || "postgres"}`);
-    console.error(`   - Database: ${process.env.DB_NAME || "lab_material_db"}`);
-    console.error(`   - Error Code: ${err.code}`);
-    console.error(`   - Error Message: ${err.message}`);
-
-    if (err.message.includes("password authentication failed")) {
-      console.error("👉 CAUSE: Incorrect password for user '" + (process.env.DB_USER || "postgres") + "'");
-      console.error("👉 ACTION: Update DB_PASSWORD in backend/.env file");
-    } else if (err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET') {
-      console.error("👉 CAUSE: Database server is not running or unreachable");
-      console.error("👉 ACTION: Start your PostgreSQL server (e.g., pg_ctl start or check services)");
-    }
+    console.error("❌ Database connection failed:", err.message);
+    console.error("Make sure:");
+    console.error("  1. PostgreSQL is running");
+    console.error("  2. Database 'lab_material_db' exists");
+    console.error("  3. .env file has correct credentials");
   } else {
     console.log("✅ Database connection successful");
     console.log("✅ Database connection pool initialized");
