@@ -3,16 +3,41 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // Create connection pool
-const pool = new Pool({
+// Create connection pool
+const dbConfig = {
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
-  // Fallback for local development if DATABASE_URL is not set
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "password",
-  host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || "lab_material_db"
-});
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+};
+
+// If DATABASE_URL is not set, use individual env vars
+if (!process.env.DATABASE_URL) {
+  dbConfig.user = process.env.DB_USER || "postgres";
+  dbConfig.password = process.env.DB_PASSWORD || "password";
+  dbConfig.host = process.env.DB_HOST || "localhost";
+  dbConfig.port = process.env.DB_PORT || 5432;
+  dbConfig.database = process.env.DB_NAME || "lab_material_db";
+}
+
+const pool = new Pool(dbConfig);
+
+// Log connection details (masking password) for debugging
+const maskedConnectionString = process.env.DATABASE_URL
+  ? process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@')
+  : 'Not set';
+
+console.log("🔌 Database Configuration:");
+console.log(`   - Connection String: ${maskedConnectionString}`);
+if (!process.env.DATABASE_URL) {
+  console.log(`   - Host: ${dbConfig.host}`);
+  console.log(`   - Database: ${dbConfig.database}`);
+  console.log(`   - User: ${dbConfig.user}`);
+}
+
+// Check for placeholder values
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes("hostname")) {
+  console.error("\n❌ CRITICAL ERROR: DATABASE_URL appears to contain a placeholder value ('hostname')!");
+  console.error("👉 You likely copied the example string. Please go to Render Dashboard -> Environment and update DATABASE_URL with the ACTUAL connection string from your database.\n");
+}
 
 // Handle connection errors
 pool.on("error", (err) => {
